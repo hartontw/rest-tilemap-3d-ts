@@ -6,14 +6,14 @@ REST API to store tilemap info and calculate paths
 
 ```bash
 git clone https://<url>
-cd rest-tilemap-3d
+cd rest-tilemap-3d-ts
 npm install
 npm run build
 ```
 
 ### Configuration
 
-Create .env file in rest-tilemap-3d directory.
+Create .env file in rest-tilemap-3d-ts directory.
 
 Full .env file looks like this.
 ```
@@ -42,8 +42,8 @@ PM2 ```ecosystem.config.js```
 module.exports = {
     apps: [
         {
-            name: "rest-tilemap-3d",
-            script: "~/rest-tilemap-3d/build/server.js",
+            name: "rest-tilemap-3d-ts",
+            script: "~/rest-tilemap-3d-ts/build/src/server.js",
             env: {
                 PORT: 3000,
                 PASSWORD: "<secure_password>"
@@ -98,7 +98,7 @@ Body
     "x": 0,
     "y": 0,
     "z": 0,
-    "date": "2022/03/05",
+    "updated": "2022/03/05",
     "info": {
         "name": "minecraft:dirt"
     }
@@ -160,7 +160,7 @@ Body
     "x": 0,
     "y": 0,
     "z": 0,
-    "date": "2022/03/06",
+    "updated": "2022/03/06",
     "info": {
         "name": "minecraft:rock"
     }
@@ -196,7 +196,7 @@ Query
 Body
 ```json
 {
-    "date": "2022/03/06",
+    "updated": "2022/03/06",
     "info": {
         "name": "minecraft:rock"
     }
@@ -247,7 +247,7 @@ Body
         "x": 0,
         "y": 0,
         "z": 0,
-        "date": "2022/03/07",
+        "updated": "2022/03/07",
         "info": {
             "name": "minecraft:rock"
         }
@@ -256,7 +256,7 @@ Body
         "x": 1,
         "y": 0,
         "z": 0,
-        "date": "2022/03/06",
+        "updated": "2022/03/06",
         "info": {
             "name": "minecraft:dirt"
         }
@@ -273,7 +273,7 @@ Response
             "x": 1,
             "y": 0,
             "z": 0,
-            "date": "2022/03/06",
+            "updated": "2022/03/06",
             "info": {
                 "name": "minecraft:dirt"
             }
@@ -284,7 +284,7 @@ Response
             "x": 0,
             "y": 0,
             "z": 0,
-            "date": "2022/03/07",
+            "updated": "2022/03/07",
             "info": {
                 "name": "minecraft:rock"
             }
@@ -330,7 +330,7 @@ Response
         "x": 0,
         "y": 0,
         "z": 0,
-        "date": "2022/03/07",
+        "updated": "2022/03/07",
         "info": {
             "name": "minecraft:rock"
         }
@@ -339,7 +339,7 @@ Response
         "x": 1,
         "y": 0,
         "z": 0,
-        "date": "2022/03/06",
+        "updated": "2022/03/06",
         "info": {
             "name": "minecraft:dirt"
         }
