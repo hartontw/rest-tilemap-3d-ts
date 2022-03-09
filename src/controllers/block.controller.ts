@@ -24,7 +24,13 @@ export default class BlockController {
     
             let block = new BlockModel({x, y, z, updated: date, info})
             block = await block.save()
-            return res.status(201).json({x:block.x, y:block.y, z:block.z, updated:block.updated, info:block.info});
+            return res.status(201).json({
+                x:block.x, 
+                y:block.y, 
+                z:block.z, 
+                updated:block.updated, 
+                info:block.info
+            });
         }
         catch(error : any) {
             if (error.code) {
@@ -64,25 +70,37 @@ export default class BlockController {
             const info = req.body.info;
             const date = new Date(req.body.updated);
 
-            let block = await BlockModel.findOne({x,y,z}).select(['-_id', '-__v']);
+            let block = await BlockModel.findOne({x,y,z});
             if (!block) {
-                if (!info) return res.status(304).json(block);
+                if (!info) return res.status(304).json();
                 
                 block = new BlockModel({x, y, z, updated: date, info});
                 block = await block.save();
-                return res.status(201).json(block);
+                return res.status(201).json({
+                    x: block.x,
+                    y: block.y,
+                    z: block.z,
+                    updated: block.updated,
+                    info: block.info
+                });
             }
 
-            if (date < block.updated) return res.status(304).json(block);
-
+            if (date < block.updated) return res.status(304).json();
+            
             if (!info) {
                 await BlockModel.deleteOne({x, y, z})
                 return res.status(200).json()
             }
-                
+
             block.overwrite({x, y, z, updated: date, info})
-            block = await block.save()
-            return res.status(200).json(block)
+            const stored = await block.save();
+            return res.status(200).json({
+                x: stored.x,
+                y: stored.y,
+                z: stored.z,
+                updated: stored.updated,
+                info: stored.info
+            });
         }
         catch(error : any) {
             if (error.code) {
