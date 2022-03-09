@@ -4,9 +4,9 @@
   "description": "REST API to store tilemap info and calculate paths",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
-    "build": "tsc",
-    "start": "node build/server.js"
+    "dev": "tsc -w & nodemon ./build/src/server.js",
+    "build": "rm -rf ./build && tsc",
+    "start": "node ./build/src/server.js"
   },
   "keywords": [
     "tilemap",
@@ -28,6 +28,8 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "@types/compression": "^1.7.2",
+    "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/morgan": "^1.9.3",
