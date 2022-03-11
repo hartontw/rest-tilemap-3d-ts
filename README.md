@@ -387,7 +387,7 @@ Query
 
 **destination**: Specify the destination point.
 
-**space**: Specify how much blocks around the area are considered. If not set is 0.
+**space**: Specify how much blocks around the area are considered. If not set is 2.
 
 Examples
 ```

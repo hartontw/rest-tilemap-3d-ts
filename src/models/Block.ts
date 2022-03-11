@@ -1,7 +1,6 @@
 import {Schema, model} from 'mongoose'
-import Coordinate from '../lib/Coordinate';
 
-export interface Block extends Coordinate {
+export interface Block {
     x : number,
     y : number,
     z : number,

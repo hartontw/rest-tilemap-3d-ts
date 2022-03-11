@@ -4,11 +4,11 @@ export default class Node {
     private _position : Vector;    
     private heuristic : number;
     private parent? : Node;
-    private open : boolean;
+    private open : boolean;   
 
-    constructor (position : Vector, destination : Vector) {
-        this._position = position;        
-        this.heuristic = Vector.Distance(position, destination);
+    constructor (position : Vector, heuristic : number) {
+        this._position = position;
+        this.heuristic = heuristic;
         this.open = true;
         this.parent = undefined;
     }
@@ -17,16 +17,20 @@ export default class Node {
         this.parent = parent;
     }
 
-    public getPath() {                
+    public getPath() : Array<Vector> {
+        return this.getReversePath().reverse();
+    }
+
+    public getReversePath() : Array<Vector> {
         const reversePath : Array<Vector> = new Array<Vector>();
 
-        let parent = this.parent;
+        let parent : Node | undefined = this;
         while (parent) {
-            reversePath.push(parent.position)
-            parent = parent.parent
+            reversePath.push(parent.position);
+            parent = parent.parent;
         }
         
-        return reversePath.reverse()
+        return reversePath;
     }
 
     public isOpen() {
@@ -37,8 +41,12 @@ export default class Node {
         this.open = false;
     }
 
-    public isBetter(parent : Node) {
-        return this.isOpen() && this.g > parent.g + 1
+    public isBetter(other : Node) {
+        return this.g > other.g + 1;
+    }
+
+    public isLower(other : Node) {
+        return this.f < other.f || this.f === other.f && this.h < other.h
     }
 
     public get position() : Vector {

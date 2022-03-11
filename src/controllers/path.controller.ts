@@ -1,56 +1,11 @@
 import { Request, Response } from 'express';
 import { Block, BlockModel } from '../models/Block';
 import ResponseErrror from '../lib/ResponseError';
-import Coordinate from '../lib/Coordinate';
 import Vector from '../lib/Vector';
 import Matrix from '../lib/Matrix';
-import Node from '../lib/Node';
+import PathFind from '../lib/PathFind';
 
-function getLower(openList : Array<Node>) : Node | undefined {
-    let l = openList.length-1;
-    let lower = openList[l];
-
-    for (let i = openList.length-2; i >= 0; i--) {
-        const node = openList[i];
-        const nf = node.f;
-        const lf = lower.f;
-        if (nf < lf || nf == lf && node.h < lower.h) {
-            lower = node;
-            l = i;
-        }
-    }
-
-    if (lower) {
-        lower.close();
-        openList.splice(l, 1);
-    }
-
-    return lower;
-}
-
-function generateAdjacent(blocks : Matrix<boolean>, nodes : Matrix<Node>, openList : Array<Node>, destination : Vector, parent : Node) : void {
-    const check = function(x : number, y : number, z : number) {
-        let position : Vector = new Vector(x, y, z);
-        if (!blocks.exists(position)) {
-            let node = nodes.at(position);
-            if (!node) {
-                let node : Node = new Node(position, destination);
-                node.setParent(parent);
-                nodes.add(position, node);
-                openList.push(node);
-            }
-            else if (node.isBetter(parent)) {
-                node.setParent(parent);
-            }
-        }
-    }
-    check(parent.x-1, parent.y, parent.z);
-    check(parent.x+1, parent.y, parent.z);
-    check(parent.x, parent.y-1, parent.z);
-    check(parent.x, parent.y+1, parent.z);
-    check(parent.x, parent.y, parent.z-1);
-    check(parent.x, parent.y, parent.z+1);
-}
+const SPACE : number = 2;
 
 function parse(value : string, header : string) : any | undefined {
     try {
@@ -59,13 +14,6 @@ function parse(value : string, header : string) : any | undefined {
     catch(e : any) {
         throw new ResponseErrror(400, `${header}: ${e.message}`);
     }
-}
-
-function vectorize(v : Coordinate) : Vector | undefined {    
-    if (v.x === undefined) return;
-    if (v.y === undefined) return;
-    if (v.z === undefined) return;
-    return new Vector(Number(v.x), Number(v.y), Number(v.z));
 }
 
 function loadQuery(req : Request) : any {
@@ -99,17 +47,17 @@ function loadQuery(req : Request) : any {
 function readRequest(req : Request) : any {
     let {filter, start, destination, space} = req.body && Object.keys(req.body).length > 0 ? req.body : loadQuery(req);    
 
-    start = vectorize(start);
+    start = Vector.Parse(start);
     if (!start) throw new ResponseErrror(400, "start must be a coordinate (x, y, z)");
 
-    destination = vectorize(destination);
+    destination = Vector.Parse(destination);
     if (!destination) throw new ResponseErrror(400, "destination must be a coordinate (x, y, z)");
 
     if (Vector.Equals(start, destination)) throw new ResponseErrror(400, "start and destination are the same position");
 
-    if (!space) space = {x:0, y:0, z:0}
-    else if (!isNaN(Number(space))) space = {x:space, y:space, z:space}
-    space = vectorize(space);
+    if (!space) space = {x:SPACE, y:SPACE, z:SPACE};
+    else if (!isNaN(Number(space))) space = {x:space, y:space, z:space};
+    space = Vector.Parse(space);
     if (!space) throw new ResponseErrror(400, "space must be a number or an area (x, y, z)");    
 
     if (!filter) filter = {};
@@ -143,7 +91,8 @@ async function loadBlocks(filter : any, start : Vector, destination : Vector, sp
 
     const blocks : Matrix<boolean> = new Matrix<boolean>();
     stored.forEach(block => {
-        blocks.add(block, true);
+        const pos : Vector = new Vector(block.x, block.y, block.z);
+        blocks.add(pos, true);
     });
 
     if (blocks.exists(start)) throw new ResponseErrror(400, "start is occupied");
@@ -175,30 +124,15 @@ async function loadBlocks(filter : any, start : Vector, destination : Vector, sp
 
 export default async (req : Request, res : Response) => {
     try {        
-        const {filter, start, destination, space} = readRequest(req);        
+        const {filter, start, destination, space} = readRequest(req);
 
         const blocks : Matrix<boolean> = await loadBlocks(filter, start, destination, space);
 
-        let parent : Node = new Node(start, destination);
-        let nodes : Matrix<Node> = new Matrix<Node>();
-        let openList : Array<Node> = new Array<Node>();
+        const path = PathFind(blocks, start, destination);
 
-        nodes.add(parent.position, parent);
-        parent.close();
-    
-        while (!Vector.Equals(parent.position, destination)) {
-            generateAdjacent(blocks, nodes, openList, destination, parent);
-    
-            const nextParent = getLower(openList);
-            if (!nextParent) {
-                return res.status(404).json({error: "Invalid path", path: parent.getPath()});
-            }
-            parent = nextParent;
-        }
+        if (path) return res.status(200).json(path);
 
-        const path = parent.getPath();
-
-        return res.status(200).json(path);
+        return res.status(404).json("Invalid path");
     }
     catch(error : any) {
         if (error.code) {
